@@ -14,3 +14,8 @@ the inherited copyright notice in LICENSE.
 This project is an independent background manager and is not affiliated with
 or endorsed by Factory (The San Francisco AI Factory, Inc.), OpenAI, or Notion.
 Product names and trademarks belong to their respective owners.
+
+## 图标素材
+
+插件图标底图由用户提供；Factory 标识参考来自 https://factory.com/favicon.svg 。这些素材的权利属于各自权利人，不因项目的 MIT 代码许可证而重新授权。组合图标仅用于识别插件目标，并不代表 Factory 官方出品或认可。
+

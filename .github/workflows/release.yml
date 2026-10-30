@@ -28,6 +28,21 @@ jobs:
         with:
           components: rustfmt
 
+      - name: Set up Node for icon checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: assets/icon-source/package-lock.json
+
+      - name: Verify packaged icon assets
+        working-directory: assets/icon-source
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Cache Rust build artifacts
         uses: swatinem/rust-cache@v2
         with:
@@ -87,6 +102,6 @@ jobs:
           $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $zipName" | Set-Content -Path $checksumPath -Encoding utf8
           $tag = "${{ github.ref_name }}"
-          $ghArgs = @("release", "create", $tag, $zipPath, $checksumPath, "--verify-tag", "--title", "Factory Background Studio $tag", "--notes-file", "CHANGELOG.md")
+          $ghArgs = @("release", "create", $tag, $zipPath, $checksumPath, "--verify-tag", "--title", "Factory Background Studio $tag", "--notes-file", "docs/releases/$version.md")
           if ($tag -match "-") { $ghArgs += "--prerelease" }
           gh @ghArgs

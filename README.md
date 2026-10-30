@@ -37,7 +37,7 @@ cargo build --release
 
 ## 已知限制
 
-- 插件图标尚未制作。
+- 插件图标使用用户提供的半透明底图与 Factory 官方标识组合，素材与复现步骤见 [assets/icon-source](assets/icon-source/README.md)。
 - 当前主页面白名单针对本机 Squirrel 安装和 `factory-app://desktop`；customer-prem 的 HTTPS 渲染入口尚未支持。
 - 真实应用已验证图片应用、热更新、暂停、恢复、重载和 worker 重连。浅色主题仅做过不持久化 DOM 模拟，视频及终端专用视图尚未完成运行时验证（NOT RUNTIME-VERIFIED）。
 - 下载：[GitHub Releases](https://github.com/background-studio/factory_desktop_background/releases)。壳 catalog 已登记 `background-studio/factory_desktop_background`；旧版壳若没有 Factory 条目，需要更新其插件目录。

@@ -1,0 +1,15 @@
+{
+  "name": "background-studio-plugin-icon-source",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Layered Factory plugin icon: 40% artwork, frame, official vector mark",
+  "scripts": {
+    "prepare-background": "node prepare-background.mjs",
+    "compose": "node compose-icon.mjs",
+    "verify": "node verify-icon.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}

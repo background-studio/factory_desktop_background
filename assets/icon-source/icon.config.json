@@ -1,0 +1,11 @@
+{
+  "pluginId": "factory",
+  "background": "background-source.png",
+  "mark": "mark-generated.png",
+  "removeWhiteBackground": false,
+  "frame": {
+    "shadow": "#723014",
+    "stroke": "#FF753D",
+    "highlight": "#FFE4CF"
+  }
+}
