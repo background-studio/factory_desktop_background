@@ -1,6 +1,6 @@
 [package]
 name = "factory-background-studio"
-version = "0.1.0"
+version = "0.1.1"
 description = "A headless Background Studio worker for the Factory Windows desktop app."
 authors = ["Factory Background Studio contributors"]
 license = "MIT"
