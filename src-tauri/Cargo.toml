@@ -1,0 +1,40 @@
+[package]
+name = "factory-background-studio"
+version = "0.1.0"
+description = "A headless Background Studio worker for the Factory Windows desktop app."
+authors = ["Factory Background Studio contributors"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77.2"
+
+[features]
+integration-test-pipe = []
+
+[lib]
+name = "factory_background_studio_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "factory-background-studio"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.20.0", features = ["v4", "serde"] }
+sha2 = "0.10.9"
+chrono = "0.4.45"
+url = "2.5.8"
+reqwest = { version = "0.13.3", default-features = false, features = ["blocking", "native-tls-no-alpn", "stream"] }
+tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "sync", "time"] }
+tungstenite = { version = "0.29.0", default-features = false, features = ["handshake"] }
+base64 = "0.22.1"
+wait-timeout = "0.2.1"
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

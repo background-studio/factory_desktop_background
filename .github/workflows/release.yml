@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Build and publish Windows plugin zip
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Rust build artifacts
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Verify tag and crate versions
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $cargo = cargo metadata --manifest-path src-tauri/Cargo.toml --no-deps --format-version 1 | ConvertFrom-Json
+          $cargoVersion = ($cargo.packages | Where-Object name -eq "factory-background-studio").version
+          if ($tag -ne "v$cargoVersion") {
+            throw "标签 $tag 与 Cargo.toml 版本 v$cargoVersion 不一致。"
+          }
+          $manifest = Get-Content plugin.json -Raw | ConvertFrom-Json
+          if ($manifest.pluginProtocol -ne 2 -or $manifest.id -ne "factory") {
+            throw "plugin.json 的 pluginProtocol/id 无效。"
+          }
+
+      - name: Format and test
+        working-directory: src-tauri
+        run: |
+          cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build release worker
+        run: cargo build --locked --release --manifest-path src-tauri/Cargo.toml
+
+      - name: Publish plugin.zip for Background Studio host
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $cargo = cargo metadata --manifest-path src-tauri/Cargo.toml --no-deps --format-version 1 | ConvertFrom-Json
+          $version = ($cargo.packages | Where-Object name -eq "factory-background-studio").version
+          $exe = "src-tauri/target/release/factory-background-studio.exe"
+          if (-not (Test-Path $exe)) { throw "找不到 release 可执行文件：$exe" }
+          $stage = Join-Path $env:RUNNER_TEMP "factory-plugin"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item $exe (Join-Path $stage "Factory Background Studio.exe")
+          Copy-Item "plugin.json" (Join-Path $stage "plugin.json")
+          Copy-Item "LICENSE" (Join-Path $stage "LICENSE")
+          Copy-Item "THIRD_PARTY_NOTICES.md" (Join-Path $stage "THIRD_PARTY_NOTICES.md")
+          if (Test-Path "src-tauri/icons/icon.png") {
+            Copy-Item "src-tauri/icons/icon.png" (Join-Path $stage "icon.png")
+          }
+          if (Test-Path "src-tauri/icons/icon.ico") {
+            Copy-Item "src-tauri/icons/icon.ico" (Join-Path $stage "icon.ico")
+          }
+          $zipName = "FactoryBackgroundStudio-$version-plugin.zip"
+          $zipPath = Join-Path $env:RUNNER_TEMP $zipName
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zipPath
+          $checksumPath = "$zipPath.sha256"
+          $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $zipName" | Set-Content -Path $checksumPath -Encoding utf8
+          $tag = "${{ github.ref_name }}"
+          $ghArgs = @("release", "create", $tag, $zipPath, $checksumPath, "--verify-tag", "--title", "Factory Background Studio $tag", "--notes-file", "CHANGELOG.md")
+          if ($tag -match "-") { $ghArgs += "--prerelease" }
+          gh @ghArgs

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.vite/
+*.log
+/reference/
+src-tauri/target/
+tools/
+poc/
+build/
